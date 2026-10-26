@@ -1,0 +1,28 @@
+'use client';
+import {useState} from 'react';
+import {Popup,Field,Select,Check,Chips,EmptyTable,Tabs} from './ReplicaPanels';
+export default function ProductReplica({notify,filtersOnly=false}:{notify:(s:string)=>void;filtersOnly?:boolean}){
+  const [popup,setPopup]=useState('');const [detail,setDetail]=useState(true);const [tab,setTab]=useState('기본정보');
+  const actions=['마켓 업로드','마켓 동기화 (가격/재고)','초저가 옵션 제외','상품 삭제'];
+  return <>{filtersOnly?<><div className="ws-flex rep-wrap ws-gap"><Field label="카테고리" placeholder="카테고리 검색 (예: 된장, 장류, 식품)"/><button onClick={()=>setPopup('수집그룹 선택')}>수집그룹 전체 ▾</button><Select label="기간" options={['수집일','등록일','수정일']}/><Field label="시작일" type="date"/><span>~</span><Field label="종료일" type="date"/><Select label="가격" options={['선택 안 함','원가','판매가','마진금액']}/></div><Chips label="검색 기준" items={['상품명','마켓상품ID','상품코드','원본ID','메모']}/><div className="rep-filter-matrix"><Chips label="등록 상태" items={['전체','마켓별 등록/미등록']}/><Chips label="등록 진행중" items={['전체','◐ 제외']}/><Chips label="이미지번역" items={['전체','🇰🇷 이미지번역만']}/><Chips label="그룹상품" items={['전체','▣ 그룹포함','□ 그룹제외']}/><Chips label="수집마켓" items={['전체','아마존','타오바오','알리']}/><div className="rep-chip-row"><b>고객유입</b><button onClick={()=>setPopup('고객 유입수 필터')}>📈 유입수</button></div></div><div className="rep-operation-line"><b>기능 적용</b><div className="ws-flex rep-wrap">{['금지키워드 상품조회','제거키워드 적용','변환단어 적용','금지키워드 상품삭제','상품명 길이 변경','중복단어 제거','상품명 키워드 추가','단어 변환','특수문자 제거','상품명 섞기','배송비 설정','대표이미지 누끼','중복상품 제거'].map(s=><button key={s} onClick={()=>setPopup(s)}>{s}</button>)}</div></div><div className="rep-operation-line"><b>일괄 변경</b><div className="ws-flex rep-wrap">{['마진 템플릿 변경','배송 정책 변경','카테고리 변경','메모 변경','원본URL 변경','원본상품명 변환','그룹 이동'].map(s=><button key={s} onClick={()=>setPopup(s)}>{s}</button>)}</div></div></>:<div className="ws-flex ws-toolbar"><button onClick={()=>setPopup('상품정보 수정')}>✎ 상품정보 수정</button>{actions.map(s=><button key={s} onClick={()=>setPopup(s)}>{s}</button>)}<button onClick={()=>setPopup('업로드 현황 보기')}>☷ 업로드 현황 보기</button><button onClick={()=>setPopup('휴지통')}>♜ 휴지통</button><button className={detail?'ws-primary':''} onClick={()=>setDetail(!detail)}>☰ 상세보기 {detail?'ON':'OFF'}</button></div>}
+  {popup&&<Popup title={popup} wide={['상품정보 수정','마켓 업로드','업로드 현황 보기'].includes(popup)} close={()=>setPopup('')} onSave={()=>{notify('화면 설정을 적용했습니다. 실제 상품·마켓에는 전송하지 않았습니다.');setPopup('');}}>
+  {popup==='상품정보 수정'?<><Tabs items={['기본정보','이미지','옵션','상세페이지','마켓별 가격','등록정보']} value={tab} onChange={setTab}/>{tab==='기본정보'?<><Field label="상품명"/><Field label="원문 상품명"/><div className="ws-filter-grid"><Field label="원가" type="number"/><Field label="배송비" type="number"/><Field label="카테고리"/><Select label="마진템플릿" options={['새 템플릿 1','사용자 설정']}/><Select label="배송정책" options={['기본 배송정책']}/><Field label="원산지" value="중국"/></div><Field label="원본 URL"/><label className="rep-field">메모<textarea rows={3}/></label></>:tab==='이미지'?<div className="rep-image-upload"><p>대표이미지 · 추가이미지</p><Field label="이미지 파일" type="file"/><button onClick={()=>notify('이미지 URL 입력창을 열 수 있습니다.')}>URL 추가</button></div>:tab==='옵션'?<EmptyTable headers={['사용','옵션명','옵션값','원가','판매가','재고','이미지']} message="상품을 선택하면 옵션이 표시됩니다"/>:tab==='상세페이지'?<label className="rep-field">상세페이지 HTML<textarea rows={15}/></label>:<EmptyTable headers={['마켓','판매가','할인','마진','등록계정','상품ID']} message="등록된 마켓이 없습니다"/>}<p className="ws-notice">화면 미리보기 · 상품을 실제로 수정하지 않습니다.</p></>:
+  popup==='마켓 업로드'?<><Field label="업로드 그룹명" placeholder="예: 신규 상품 업로드"/><h3 className="ws-gap">업로드할 마켓·계정 선택</h3><div className="rep-columns">{['쿠팡','스마트스토어','옥션','G마켓','11번가','톡스토어','카카오'].map(m=><Check key={m} label={m}/>)}</div><Select label="마켓 등록 템플릿" options={['새 템플릿 1']}/><Check label="이미 등록된 상품 제외" checked/><Check label="검수완료 상품만 등록" checked/><p className="ws-notice">체크한 상품을 선택한 마켓에 등록합니다. 화면 미리보기에서는 업로드하지 않습니다.</p></>:
+  popup==='업로드 현황 보기'?<><Tabs items={['전체','진행중','완료','실패']} value={tab} onChange={setTab}/><EmptyTable headers={['그룹명','마켓','요청','성공','실패','상태','시작일']} message="업로드 이력이 없습니다"/></>:
+  popup==='휴지통'?<><p className="ws-notice">삭제한 상품을 7일 동안 보관합니다. 7일이 지나면 자동으로 완전 삭제됩니다.</p><div className="ws-flex ws-gap"><button onClick={()=>notify('선택한 상품이 없습니다.')}>선택 복원</button><button onClick={()=>notify('휴지통이 비어 있습니다.')}>완전 삭제</button></div><EmptyTable headers={['선택','상품명','상품코드','삭제일','남은기간']} message="휴지통이 비어 있습니다"/></>:
+  popup==='수집그룹 선택'?<><Field label="그룹 검색"/><Check label="전체 선택" checked/><Check label="미지정"/></>:
+  popup==='배송비 설정'?<><Field label="배송비 (원)" type="number" value="0"/><Select label="배송정책" options={['유료배송','무료배송 (판매가에 합산)','무료배송 (배송비 포함안함)']}/></>:
+  popup==='마진 템플릿 변경'?<Select label="마진 템플릿" options={['새 템플릿 1','사용자 설정']}/>:
+  popup==='배송 정책 변경'?<Select label="배송 정책" options={['기본 배송정책','유료배송','무료배송']}/>:
+  popup==='카테고리 변경'?<><Field label="통합 카테고리 검색"/><Select label="카테고리" options={['카테고리를 선택하세요','생활용품 > 공구','디지털/가전']}/></>:
+  popup==='그룹 이동'?<Select label="이동할 수집그룹" options={['수집그룹 선택','미지정']}/>:
+  popup==='고객 유입수 필터'?<><Select label="마켓" options={['전체','쿠팡','스마트스토어','옥션','G마켓','11번가']}/><Field label="유입수" type="number"/><Select label="조건" options={['미만','이상']}/></>:
+  popup==='상품명 길이 변경'?<><Field label="최대 길이" type="number" value="49"/><Check label="공백 포함" checked/></>:
+  popup==='상품명 키워드 추가'?<><Field label="추가할 키워드"/><Select label="추가 위치" options={['앞에 추가','뒤에 추가']}/></>:
+  popup==='단어 변환'?<><Field label="변환할 단어"/><Field label="새 단어"/><Check label="띄어쓰기 무시"/></>:
+  popup==='메모 변경'?<label className="rep-field">메모<textarea rows={4}/></label>:
+  popup==='원본URL 변경'?<Field label="원본 URL" placeholder="https://"/>:
+  <><p className="ws-notice">선택한 상품에 {popup} 기능을 적용합니다.</p><p>화면 미리보기입니다. 실제 상품을 변경하지 않습니다.</p><Check label="선택한 상품에 적용" checked/></>}
+  </Popup>}
+  </>;
+}
